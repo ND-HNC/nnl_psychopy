@@ -1,45 +1,144 @@
-"""Convert serial input to keyboard.
+"""Serial to Keyboard bridge module.
 
-Create PsychoPy code object, call for script via:
-    os.system("python serial_keyboard.py --port /dev/tty")
-
-Sources:
-    - https://github.com/Robotto/serial2keyboard/blob/master/serial2keyboard.py
-    - https://discourse.psychopy.org/t/nnl-syncbox-for-mri-trigger-input/4297/11
+Converts serial port input into virtual keyboard typing events.
 
 Examples:
-    python serial2keyboard.py --get-ports
-    python serial2keyboard.py --port /dev/tty.*
-    python serial2keyboard.py --port /dev/tty.* --baud 8400
+    # As a module import:
+    from serial_keyboard import SerialKeyboard
 
+    sk = SerialKeyboard(port="/dev/ttyUSB0", baud_rate=9600)
+    sk.listen()
+
+    # As a CLI tool:
+    python -m serial_keyboard --get-ports
+    python -m serial_keyboard --port /dev/ttyUSB0 --baud 9600
 """
 
-import sys
-import glob
+from __future__ import annotations
+
 from argparse import ArgumentParser, RawTextHelpFormatter
+import glob
+import sys
+from typing import List, Optional
+
+from pynput.keyboard import Controller, Key
 import serial
-from pynput.keyboard import Key, Controller
 
 
-def _get_args():
-    """Get and parse arguments."""
+def list_ports() -> List[str]:
+    """Find all openable serial ports on the current platform.
+
+    Returns:
+        List[str]: A list of available serial port names.
+
+    Raises:
+        EnvironmentError: If run on an unsupported operating system platform.
+    """
+    if sys.platform.startswith("win"):
+        ports = [f"COM{i + 1}" for i in range(256)]
+    elif sys.platform.startswith("linux") or sys.platform.startswith("cygwin"):
+        ports = glob.glob("/dev/tty[A-Za-z]*")
+    elif sys.platform.startswith("darwin"):
+        ports = glob.glob("/dev/tty.*")
+    else:
+        raise EnvironmentError("Unsupported platform")
+
+    result = []
+    for port in ports:
+        try:
+            connection = serial.Serial(port)
+            connection.close()
+            result.append(port)
+        except (OSError, Exception):
+            pass
+    return result
+
+
+class SerialKeyboard:
+    """Manages serial connection and translates incoming ASCII lines into keyboard actions.
+
+    Attributes:
+        port (str): Serial port name (e.g., '/dev/ttyUSB0' or 'COM3').
+        baud_rate (int): Baud rate for communication (default: 9600).
+        timeout (float): Serial connection read timeout in seconds.
+    """
+
+    def __init__(
+        self, port: str, baud_rate: int = 9600, timeout: float = 1.0
+    ) -> None:
+        self.port = port
+        self.baud_rate = baud_rate
+        self.timeout = timeout
+        self.keyboard = Controller()
+        self._connection: Optional[serial.Serial] = None
+
+    def connect(self) -> serial.Serial:
+        """Establish connection to specified serial port.
+
+        Returns:
+            serial.Serial: Active serial connection object.
+        """
+        try:
+            print(
+                f"Attempting to connect to port={self.port}, "
+                f"baud={self.baud_rate} ..."
+            )
+            self._connection = serial.Serial(
+                self.port, self.baud_rate, timeout=self.timeout
+            )
+            return self._connection
+        except Exception as error:
+            print(
+                f"ERROR: Failed to connect to port={self.port}, "
+                f"baud={self.baud_rate}"
+            )
+            raise error
+
+    def listen(self) -> None:
+        """Listen continuously for incoming serial data and type characters."""
+        if not self._connection or not self._connection.is_open:
+            self.connect()
+
+        try:
+            while self._connection and self._connection.is_open:
+                if self._connection.in_waiting > 0:
+                    rx_line = (
+                        self._connection.readline().decode("ascii").strip()
+                    )
+                    self.keyboard.type(rx_line)
+                    self.keyboard.press(Key.enter)
+                    self.keyboard.release(Key.enter)
+        except Exception:
+            print("Something happened... did you just yank the thing out?")
+        finally:
+            self.close()
+
+    def close(self) -> None:
+        """Close serial connection safely."""
+        if self._connection and self._connection.is_open:
+            self._connection.close()
+            print("Serial connection closed.")
+
+
+def _get_args() -> ArgumentParser:
+    """Get and parse CLI arguments."""
     parser = ArgumentParser(
         description=__doc__, formatter_class=RawTextHelpFormatter
     )
     parser.add_argument(
         "--baud",
         default=9600,
-        help="Baud rate (default : %(default)s).",
+        help="Baud rate (default: %(default)s).",
         type=int,
     )
     parser.add_argument(
         "--get-ports",
         action="store_true",
-        help="Caculate topo metrics for each subject",
+        help="List available system serial ports.",
     )
     parser.add_argument(
         "--port",
-        help="Port name",
+        help="Target serial port name.",
         type=str,
     )
 
@@ -50,81 +149,22 @@ def _get_args():
     return parser
 
 
-def _list_ports() -> list:
-    """Finds all serial ports and returns a list containing them.
+def main() -> None:
+    """CLI entrypoint."""
+    parser = _get_args()
+    args = parser.parse_args()
 
-    Raise:
-        EnvironmentError: Unexpected system platform.
-
-    """
-    if sys.platform.startswith("win"):
-        ports = ["COM%s" % (i + 1) for i in range(256)]
-    elif sys.platform.startswith("linux") or sys.platform.startswith("cygwin"):
-        # this excludes your current terminal "/dev/tty"
-        ports = glob.glob("/dev/tty[A-Za-z]*")
-    elif sys.platform.startswith("darwin"):
-        ports = glob.glob("/dev/tty.*")
-    else:
-        raise EnvironmentError("Unsupported platform")
-
-    # Build list of ports sucessfully opened
-    result = []
-    for port in ports:
-        try:
-            s = serial.Serial(port)
-            s.close()
-            result.append(port)
-        except (OSError, Exception):
-            pass
-    return result
-
-
-def _serial_connect(serial_port: str, baud_rate: int) -> serial.Serial:
-    """Connect to serial device and return connection."""
-    try:
-        serial_cx = serial.Serial(serial_port, baud_rate, timeout=1)
-    except Exception as error:
-        print(
-            f"ERROR: Failed to connect to port={serial_port}, baud={baud_rate}"
-        )
-        raise error
-    return serial_cx
-
-
-def main():
-    """Get input and trigger work."""
-
-    # Get user input
-    g_args = _get_args()
-    args = g_args.parse_args()
-
-    # Evaluate user input
     if args.get_ports:
-        print(f"List of detected ports: {' '.join(_list_ports())}")
+        detected = list_ports()
+        print(f"List of detected ports: {' '.join(detected)}")
         return
 
     if not args.port:
-        g_args.print_help(sys.stderr)
+        parser.print_help(sys.stderr)
         sys.exit(1)
 
-    # Start connection
-    baud_rate = args.baud
-    serial_port = args.port
-    print(f"Attempting to connect to port={serial_port}, baud={baud_rate} ...")
-    serial_cx = _serial_connect(serial_port, baud_rate)
-
-    # Get keyboard
-    keyboard = Controller()
-    try:
-        while serial_cx.is_open:
-            if serial_cx.in_waiting > 0:
-                rx_line = serial_cx.readline().decode("ascii").strip()
-                keyboard.type(rx_line)
-                keyboard.press(Key.enter)
-                keyboard.release(Key.enter)
-    except Exception as error:
-        print("ERROR: Missing keyboard controller.")
-        raise error
+    sk = SerialKeyboard(port=args.port, baud_rate=args.baud)
+    sk.listen()
 
 
 if __name__ == "__main__":

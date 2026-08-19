@@ -7,6 +7,10 @@ name = "nnl_psychopy"
 version = "0.5.0"
 requires-python = ">=3.12"
 authors = [{name = "Nathan Muncy", email = "nmuncy@nd.edu"}]
+dependencies = [
+    "pynput==1.8.2",
+    "pyserial==3.5",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
