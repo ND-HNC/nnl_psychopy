@@ -89,7 +89,7 @@ class SyncBox:
         How often to trigger on a volume.
     pulse_length : int
         Pulse length in ms (simulation mode).
-    TR_time : int
+    tr_time : int
         TR time in ms (simulation mode).
     optional_trigger_slice : int
         0: specific slice, 1: each slice, 2: random slice.
@@ -110,7 +110,7 @@ class SyncBox:
     trigger_slice: int = 1
     trigger_volume: int = 1
     pulse_length: int = 100
-    TR_time: int = 3000
+    tr_time: int = 3000
     optional_trigger_slice: int = 0
     optional_trigger_volume: int = 0
     simulation: bool = False
@@ -141,7 +141,7 @@ class SyncBox:
                 + self.int_to_bytes(self.num_volumes)
                 + self.int_to_bytes(self.num_slices)
                 + self.int_to_bytes(self.pulse_length)
-                + self.int_to_bytes(self.TR_time)
+                + self.int_to_bytes(self.tr_time)
                 + self.int_to_bytes(self.trigger_slice)
                 + self.int_to_bytes(self.trigger_volume)
                 + DUMMY_PAYLOAD
@@ -335,7 +335,7 @@ class SyncBox:
             f"\tTrigger Slice: {self.trigger_slice}\n"
             f"\tTrigger Volume: {self.trigger_volume}\n"
             f"\tPulse Length (ms): {self.pulse_length}\n"
-            f"\tTR Time (ms): {self.TR_time}\n"
+            f"\tTR Time (ms): {self.tr_time}\n"
             f"\tOptional Trigger Slice: {self.optional_trigger_slice}\n"
             f"\tOptional Trigger Volume: {self.optional_trigger_volume}\n"
             f"\tSimulation Mode: {'On' if self.simulation else 'Off'}\n"
