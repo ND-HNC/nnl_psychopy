@@ -57,9 +57,9 @@ class Command(bytes, Enum):
 
     START = b"S"
     CONFIGURE = b"R"
-    COMPUTER_MODE = b"C"
+    COMPUTER_MODE = b"D"  # C
     STOP = b"A"
-    MANUAL_MODE = b"D"
+    MANUAL_MODE = b"C"  # D
 
 
 class SyncBoxException(Exception):
