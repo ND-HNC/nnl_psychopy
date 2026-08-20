@@ -1,12 +1,6 @@
-import unittest
-from unittest.mock import MagicMock, call, patch
-
+from unittest.mock import MagicMock, patch
 import pytest
-from serial import SerialException
-
 from nnl_psychopy.nordic_neuro_lab import (
-    COMMAND_PAYLOAD_SIZE,
-    CONFIGURE_PAYLOAD_SIZE,
     Command,
     SyncBox,
     SyncBoxException,

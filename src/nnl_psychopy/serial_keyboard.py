@@ -55,7 +55,7 @@ def list_ports() -> List[str]:
 
 
 class SerialKeyboard:
-    """Manages serial connection and translates incoming ASCII lines into keyboard actions.
+    """Manages serial connection and translates incoming ASCII lines.
 
     Attributes:
         port (str): Serial port name (e.g., '/dev/ttyUSB0' or 'COM3').
@@ -86,6 +86,7 @@ class SerialKeyboard:
             self._connection = serial.Serial(
                 self.port, self.baud_rate, timeout=self.timeout
             )
+            print("Connected!")
             return self._connection
         except Exception as error:
             print(
@@ -109,7 +110,7 @@ class SerialKeyboard:
                     self.keyboard.press(Key.enter)
                     self.keyboard.release(Key.enter)
         except Exception:
-            print("Something happened... did you just yank the thing out?")
+            print("Connection lost")
         finally:
             self.close()
 

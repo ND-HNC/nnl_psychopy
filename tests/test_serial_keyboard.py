@@ -63,7 +63,7 @@ def test_connect_failure(mock_serial):
 @patch("nnl_psychopy.serial_keyboard.Controller")
 @patch("serial.Serial")
 def test_listen_reads_and_types_data(mock_serial, mock_controller_cls):
-    """Test reading incoming lines from serial input and typing them via pynput."""
+    """Test incoming lines from serial input and typing them via pynput."""
     mock_keyboard = MagicMock()
     mock_controller_cls.return_value = mock_keyboard
 
@@ -71,7 +71,8 @@ def test_listen_reads_and_types_data(mock_serial, mock_controller_cls):
     mock_connection = MagicMock()
     mock_connection.is_open = True
 
-    # First iteration: data waiting; Second iteration: close connection to exit loop
+    # First iteration: data waiting; Second iteration: close
+    # connection to exit loop.
     type(mock_connection).in_waiting = PropertyMock(side_effect=[1, 0])
 
     def mock_readline():
@@ -108,10 +109,7 @@ def test_listen_handles_cable_disconnect_gracefully(mock_serial, capsys):
     sk.listen()
 
     captured = capsys.readouterr()
-    assert (
-        "Something happened... did you just yank the thing out?"
-        in captured.out
-    )
+    assert "Connection lost" in captured.out
     assert "Serial connection closed." in captured.out
 
 
