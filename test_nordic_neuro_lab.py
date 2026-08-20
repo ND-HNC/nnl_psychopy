@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 import pytest
-from nnl_psychopy.nordic_neuro_lab import (
+from nordic_neuro_lab import (
     Command,
     SyncBox,
     SyncBoxException,
@@ -78,7 +78,7 @@ class TestSyncBoxInitialization:
     """Test SyncBox connection and configuration setup."""
 
     @patch("serial.tools.list_ports.comports")
-    @patch("nnl_psychopy.nordic_neuro_lab.Serial")
+    @patch("nordic_neuro_lab.Serial")
     def test_auto_detect_port_success(self, mock_serial_cls, mock_comports):
         port_mock = MagicMock()
         port_mock.device = "COM3"
@@ -99,7 +99,7 @@ class TestSyncBoxInitialization:
             SyncBox()
 
     @patch("serial.tools.list_ports.comports")
-    @patch("nnl_psychopy.nordic_neuro_lab.Serial")
+    @patch("nordic_neuro_lab.Serial")
     def test_auto_detect_failed_to_find_syncbox(
         self, mock_serial_cls, mock_comports
     ):
@@ -114,7 +114,7 @@ class TestSyncBoxInitialization:
         with pytest.raises(SyncBoxException, match="SyncBox not found"):
             SyncBox()
 
-    @patch("nnl_psychopy.nordic_neuro_lab.Serial")
+    @patch("nordic_neuro_lab.Serial")
     def test_init_provided_port_success(self, mock_serial_cls):
         mock_ser = create_mock_serial()
         mock_serial_cls.return_value = mock_ser
@@ -122,7 +122,7 @@ class TestSyncBoxInitialization:
         box = SyncBox(serial_port="COM1")
         assert box.serial_port == "COM1"
 
-    @patch("nnl_psychopy.nordic_neuro_lab.Serial")
+    @patch("nordic_neuro_lab.Serial")
     def test_init_configuration_failure(self, mock_serial_cls):
         mock_ser = MagicMock()
         mock_ser.is_open = True
@@ -140,7 +140,7 @@ class TestSyncBoxMethods:
 
     @pytest.fixture
     def mock_syncbox(self):
-        with patch("nnl_psychopy.nordic_neuro_lab.Serial") as mock_serial_cls:
+        with patch("nordic_neuro_lab.Serial") as mock_serial_cls:
             mock_ser = create_mock_serial()
             mock_serial_cls.return_value = mock_ser
             box = SyncBox(serial_port="COM1")
@@ -191,7 +191,7 @@ class TestSyncBoxMethods:
         assert data == "D"
 
     def test_read_current_input_buffer_disconnected(self):
-        with patch("nnl_psychopy.nordic_neuro_lab.Serial") as mock_serial_cls:
+        with patch("nordic_neuro_lab.Serial") as mock_serial_cls:
             mock_ser = create_mock_serial()
             mock_serial_cls.return_value = mock_ser
             box = SyncBox(serial_port="COM1")
@@ -205,7 +205,8 @@ class TestSyncBoxMethods:
     def test_get_trigger_success(self, mock_syncbox):
         box, mock_ser = mock_syncbox
 
-        # Restore mock echo after get_trigger finishes so teardown close() passes
+        # Restore mock echo after get_trigger finishes so
+        # teardown close() passes.
         def mock_read_trigger(size):
             mock_ser.read.side_effect = lambda s: mock_ser.write.call_args[0][
                 0
@@ -229,7 +230,7 @@ class TestSyncBoxMethods:
             box.get_trigger(timeout=0.1)
 
     def test_context_manager(self):
-        with patch("nnl_psychopy.nordic_neuro_lab.Serial") as mock_serial_cls:
+        with patch("nordic_neuro_lab.Serial") as mock_serial_cls:
             mock_ser = create_mock_serial()
             mock_serial_cls.return_value = mock_ser
 
