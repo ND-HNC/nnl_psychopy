@@ -20,7 +20,7 @@
     <Param val="True" valType="bool" updates="None" name="Save log file"/>
     <Param val="True" valType="bool" updates="None" name="Save psydat file"/>
     <Param val="True" valType="bool" updates="None" name="Save wide csv file"/>
-    <Param val="1" valType="num" updates="None" name="Screen"/>
+    <Param val="2" valType="num" updates="None" name="Screen"/>
     <Param val="True" valType="bool" updates="None" name="Show info dlg"/>
     <Param val="True" valType="bool" updates="None" name="Show mouse"/>
     <Param val="height" valType="str" updates="None" name="Units"/>
@@ -304,7 +304,7 @@
         <Param val="" valType="extendedCode" updates="constant" name="Begin JS Routine"/>
         <Param val="import time&amp;#10;&amp;#10;begin_time = time.perf_counter()" valType="extendedCode" updates="constant" name="Begin Routine"/>
         <Param val="Py" valType="str" updates="None" name="Code Type"/>
-        <Param val="resp, rt, dur = sync_box.get_response(begin_time, timeout=0.001)&amp;#10;if resp and resp in [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;]:&amp;#10;    key_resp_2.keys = resp&amp;#10;    key_resp_2.rt = rt&amp;#10;    key_resp_2.duration = dur" valType="extendedCode" updates="constant" name="Each Frame"/>
+        <Param val="resp, rt, dur = sync_box.get_response(begin_time, timeout=0.001)&amp;#10;#if resp and resp in [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;]:&amp;#10;if resp:&amp;#10;    key_resp_2.keys = resp&amp;#10;    key_resp_2.rt = rt&amp;#10;    key_resp_2.duration = dur" valType="extendedCode" updates="constant" name="Each Frame"/>
         <Param val="" valType="extendedCode" updates="constant" name="Each JS Frame"/>
         <Param val="" valType="extendedCode" updates="constant" name="End Experiment"/>
         <Param val="" valType="extendedCode" updates="constant" name="End JS Experiment"/>

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v2026.2.2),
-    on Fri Aug 21 11:50:55 2026
+    on Fri Aug 21 15:01:02 2026
 If you publish work using this script the most relevant publication is:
 
     Peirce J, Gray JR, Simpson S, MacAskill M, Höchenberger R, Sogo H, Kastman E, Lindeløv JK. (2019) 
@@ -213,7 +213,7 @@ def setupWindow(expInfo=None, win=None):
     if win is None:
         # if not given a window to setup, make one
         win = visual.Window(
-            size=_winSize, fullscr=_fullScr, screen=0,
+            size=_winSize, fullscr=_fullScr, screen=1,
             winType='pyglet', allowGUI=True, allowStencil=False,
             monitor='testMonitor', color=[0,0,0], colorSpace='rgb',
             backgroundImage='', backgroundFit='none',
@@ -986,7 +986,8 @@ def run(expInfo, thisExp, win, globalClock=None, thisSession=None):
                     key_resp_2.duration = _key_resp_2_allKeys[0].duration
             # Run 'Each Frame' code from sync_capture
             resp, rt, dur = sync_box.get_response(begin_time, timeout=0.001)
-            if resp and resp in ["a", "b", "c", "d"]:
+            #if resp and resp in ["a", "b", "c", "d"]:
+            if resp:
                 key_resp_2.keys = resp
                 key_resp_2.rt = rt
                 key_resp_2.duration = dur

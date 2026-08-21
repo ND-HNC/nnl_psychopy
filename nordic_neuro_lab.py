@@ -291,10 +291,12 @@ class SyncBox:
                 + "Please connect and try again."
             )
 
-        # Listen for initial key press
+        # Listen for initial key press,
+        # L-Thumb=a, L-Index=b, R-Index=c, R-Thumb=d.
         self._ser.timeout = timeout
+        exp_resp = [b"a", b"b", b"c", b"d"]
         out = self._ser.read(GetGlobals.COMMAND_PAYLOAD_SIZE)
-        if out:
+        if out and out in exp_resp:
             press_time = time.perf_counter()
             trigger_char = out.decode("utf-8")
 
