@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v2026.2.2),
-    on Thu Aug 20 11:19:21 2026
+    on Fri Aug 21 11:50:55 2026
 If you publish work using this script the most relevant publication is:
 
     Peirce J, Gray JR, Simpson S, MacAskill M, Höchenberger R, Sogo H, Kastman E, Lindeløv JK. (2019) 
@@ -33,6 +33,20 @@ import sys  # to get file system encoding
 import psychopy.iohub as io
 from psychopy.hardware import keyboard
 
+# Run 'Before Experiment' code from sync_start
+import nordic_neuro_lab
+
+sync_box = nordic_neuro_lab.SyncBox(
+    num_volumes=300,
+    num_slices=1,
+    trigger_slice=1,
+    trigger_volume=1,
+    pulse_length=100,
+    tr_time=3000,
+    optional_trigger_slice=0,
+    optional_trigger_volume=0,
+    simulation=False,
+)
 # --- Setup global variables (available in all functions) ---
 # create a device manager to handle hardware (keyboards, mice, mirophones, speakers, etc.)
 deviceManager = hardware.DeviceManager()
@@ -388,27 +402,8 @@ def run(expInfo, thisExp, win, globalClock=None, thisSession=None):
         languageStyle='LTR',
         depth=0.0);
     key_resp = keyboard.Keyboard(deviceName='defaultKeyboard', backend='ioHub')
-    # Run 'Begin Experiment' code from start_sk
-    #import serial_keyboard
     
-    #sk = serial_keyboard.SerialKeyboard(port="/dev/tty.usbserial-A6BZ10XN")
-    #sk.listen()
-    # Run 'Begin Experiment' code from start_sync
-    import nordic_neuro_lab
-    
-    sync_box = nordic_neuro_lab.SyncBox(
-        num_volumes=300,
-        num_slices=1,
-        trigger_slice=1,
-        trigger_volume=1,
-        pulse_length=100,
-        tr_time=3000,
-        optional_trigger_slice=0,
-        optional_trigger_volume=0,
-        simulation=False,
-    )
-    
-    # --- Initialize components for Routine "ISI" ---
+    # --- Initialize components for Routine "isi" ---
     fix = visual.TextStim(win=win, name='fix',
         text='+',
         font='Open Sans',
@@ -429,32 +424,28 @@ def run(expInfo, thisExp, win, globalClock=None, thisSession=None):
         win=win,
         name='left_img', 
         image='default.png', mask=None, anchor='center',
-        ori=0.0, pos=(0, 0), draggable=False, size=(0.5, 0.5),
+        ori=0.0, pos=(-0.3, 0), draggable=False, size=(0.5, 0.5),
         color=[1,1,1], colorSpace='rgb', opacity=None,
         flipHoriz=False, flipVert=False,
         texRes=128.0, interpolate=True, depth=-1.0)
-    ISI_load_images = clock.StaticPeriod(win=win, screenHz=expInfo['frameRate'], name='ISI_load_images')
     right_img = visual.ImageStim(
         win=win,
         name='right_img', 
         image='default.png', mask=None, anchor='center',
-        ori=0.0, pos=(0, 0), draggable=False, size=(0.5, 0.5),
+        ori=0.0, pos=(0.3, 0), draggable=False, size=(0.5, 0.5),
         color=[1,1,1], colorSpace='rgb', opacity=None,
         flipHoriz=False, flipVert=False,
-        texRes=128.0, interpolate=True, depth=-3.0)
+        texRes=128.0, interpolate=True, depth=-2.0)
     key_resp_2 = keyboard.Keyboard(deviceName='defaultKeyboard', backend='ioHub')
     
     # --- Initialize components for Routine "end" ---
-    # Run 'Begin Experiment' code from close_sync
-    #sync_box.stop()
-    #sync_box.close()
     text = visual.TextStim(win=win, name='text',
         text='End of experiment',
         font='Arial',
         pos=(0, 0), draggable=False, height=0.05, wrapWidth=None, ori=0.0, 
         color='white', colorSpace='rgb', opacity=None, 
         languageStyle='LTR',
-        depth=-1.0);
+        depth=0.0);
     
     # create some handy timers
     
@@ -499,7 +490,7 @@ def run(expInfo, thisExp, win, globalClock=None, thisSession=None):
     key_resp.keys = []
     key_resp.rt = []
     _key_resp_allKeys = []
-    # Run 'Begin Routine' code from start_sync
+    # Run 'Begin Routine' code from sync_start
     sync_box.start()
     # store start times for start
     start.tStartRefresh = win.getFutureFlipTime(clock=globalClock)
@@ -579,9 +570,12 @@ def run(expInfo, thisExp, win, globalClock=None, thisSession=None):
                 key_resp.duration = _key_resp_allKeys[-1].duration
                 # a response ends the routine
                 continueRoutine = False
-        # Run 'Each Frame' code from start_sync
-        trigger = sync_box.get_trigger(timeout=10)
-        print(f"Button response: {trigger}")
+        # Run 'Each Frame' code from sync_start
+        trigger = sync_box.get_trigger(timeout=None)
+        if trigger in ["s"]:
+            print(f"Start Button response: {trigger}")
+            continueRoutine = False
+        
         
         # check for quit (typically the Esc key)
         if defaultKeyboard.getKeys(keyList=["escape"]):
@@ -632,11 +626,6 @@ def run(expInfo, thisExp, win, globalClock=None, thisSession=None):
     if key_resp.keys != None:  # we had a response
         thisExp.addData('key_resp.rt', key_resp.rt)
         thisExp.addData('key_resp.duration', key_resp.duration)
-    # Run 'End Routine' code from start_sync
-    #if key_resp.keys == 's':
-    #    sync_box.start()
-    sync_box.stop()
-    sync_box.close()
     thisExp.nextEntry()
     # the Routine "start" was not non-slip safe, so reset the non-slip timer
     routineTimer.reset()
@@ -644,7 +633,7 @@ def run(expInfo, thisExp, win, globalClock=None, thisSession=None):
     # set up handler to look after randomisation of conditions etc
     trials = data.TrialHandler2(
         name='trials',
-        nReps=15.0, 
+        nReps=5.0, 
         method='random', 
         extraInfo=expInfo, 
         originPath=-1, 
@@ -676,27 +665,24 @@ def run(expInfo, thisExp, win, globalClock=None, thisSession=None):
             for paramName in thisTrial:
                 globals()[paramName] = thisTrial[paramName]
         
-        # --- Prepare to start Routine "ISI" ---
-        # create an object to store info about Routine ISI
-        ISI = data.Routine(
-            name='ISI',
+        # --- Prepare to start Routine "isi" ---
+        # create an object to store info about Routine isi
+        isi = data.Routine(
+            name='isi',
             components=[fix],
         )
-        ISI.status = NOT_STARTED
+        isi.status = NOT_STARTED
         continueRoutine = True
         # update component parameters for each repeat
-        # Run 'Begin Routine' code from code_2
-        #onset_ISItime = globalClock.getTime()
-        #thisExp.addData('FirstISI',onset_ISItime)
-        # store start times for ISI
-        ISI.tStartRefresh = win.getFutureFlipTime(clock=globalClock)
-        ISI.tStart = globalClock.getTime(format='float')
-        ISI.status = STARTED
-        thisExp.addData('ISI.started', ISI.tStart)
-        ISI.maxDuration = None
+        # store start times for isi
+        isi.tStartRefresh = win.getFutureFlipTime(clock=globalClock)
+        isi.tStart = globalClock.getTime(format='float')
+        isi.status = STARTED
+        thisExp.addData('isi.started', isi.tStart)
+        isi.maxDuration = None
         # keep track of which components have finished
-        ISIComponents = ISI.components
-        for thisComponent in ISI.components:
+        isiComponents = isi.components
+        for thisComponent in isi.components:
             thisComponent.tStart = None
             thisComponent.tStop = None
             thisComponent.tStartRefresh = None
@@ -708,9 +694,9 @@ def run(expInfo, thisExp, win, globalClock=None, thisSession=None):
         _timeToFirstFrame = win.getFutureFlipTime(clock="now")
         frameN = -1
         
-        # --- Run Routine "ISI" ---
-        thisExp.currentRoutine = ISI
-        ISI.forceEnded = routineForceEnded = not continueRoutine
+        # --- Run Routine "isi" ---
+        thisExp.currentRoutine = isi
+        isi.forceEnded = routineForceEnded = not continueRoutine
         while continueRoutine and routineTimer.getTime() < 0.5:
             # if trial has changed, end Routine now
             if hasattr(thisTrial, 'status') and thisTrial.status == STOPPING:
@@ -768,20 +754,20 @@ def run(expInfo, thisExp, win, globalClock=None, thisSession=None):
                     thisExp=thisExp, 
                     win=win, 
                     timers=[routineTimer, globalClock], 
-                    currentRoutine=ISI,
+                    currentRoutine=isi,
                 )
                 # skip the frame we paused on
                 continue
             
             # has a Component requested the Routine to end?
             if not continueRoutine:
-                ISI.forceEnded = routineForceEnded = True
+                isi.forceEnded = routineForceEnded = True
             # has the Routine been forcibly ended?
-            if ISI.forceEnded or routineForceEnded:
+            if isi.forceEnded or routineForceEnded:
                 break
             # has every Component finished?
             continueRoutine = False
-            for thisComponent in ISI.components:
+            for thisComponent in isi.components:
                 if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
                     continueRoutine = True
                     break  # at least one component has not yet finished
@@ -790,21 +776,18 @@ def run(expInfo, thisExp, win, globalClock=None, thisSession=None):
             if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
                 win.flip()
         
-        # --- Ending Routine "ISI" ---
-        for thisComponent in ISI.components:
+        # --- Ending Routine "isi" ---
+        for thisComponent in isi.components:
             if hasattr(thisComponent, "setAutoDraw"):
                 thisComponent.setAutoDraw(False)
-        # store stop times for ISI
-        ISI.tStop = globalClock.getTime(format='float')
-        ISI.tStopRefresh = tThisFlipGlobal
-        thisExp.addData('ISI.stopped', ISI.tStop)
-        # Run 'End Routine' code from code_2
-        #offset_ISItime = globalClock.getTime()
-        #thisExp.addData('FirstISI_End',offset_ISItime)
+        # store stop times for isi
+        isi.tStop = globalClock.getTime(format='float')
+        isi.tStopRefresh = tThisFlipGlobal
+        thisExp.addData('isi.stopped', isi.tStop)
         # using non-slip timing so subtract the expected duration of this Routine (unless ended on request)
-        if ISI.maxDurationReached:
-            routineTimer.addTime(-ISI.maxDuration)
-        elif ISI.forceEnded:
+        if isi.maxDurationReached:
+            routineTimer.addTime(-isi.maxDuration)
+        elif isi.forceEnded:
             routineTimer.reset()
         else:
             routineTimer.addTime(-0.500000)
@@ -813,7 +796,7 @@ def run(expInfo, thisExp, win, globalClock=None, thisSession=None):
         # create an object to store info about Routine force_choice
         force_choice = data.Routine(
             name='force_choice',
-            components=[fixation_2afc, left_img, ISI_load_images, right_img, key_resp_2],
+            components=[fixation_2afc, left_img, right_img, key_resp_2],
         )
         force_choice.status = NOT_STARTED
         continueRoutine = True
@@ -822,6 +805,10 @@ def run(expInfo, thisExp, win, globalClock=None, thisSession=None):
         key_resp_2.keys = []
         key_resp_2.rt = []
         _key_resp_2_allKeys = []
+        # Run 'Begin Routine' code from sync_capture
+        import time
+        
+        begin_time = time.perf_counter()
         # store start times for force_choice
         force_choice.tStartRefresh = win.getFutureFlipTime(clock=globalClock)
         force_choice.tStart = globalClock.getTime(format='float')
@@ -991,33 +978,18 @@ def run(expInfo, thisExp, win, globalClock=None, thisSession=None):
                     key_resp_2.status = FINISHED
                     key_resp_2.status = FINISHED
             if key_resp_2.status == STARTED and not waitOnFlip:
-                theseKeys = key_resp_2.getKeys(keyList=['a','b','c','d'], ignoreKeys=["escape"], waitRelease=False)
+                theseKeys = key_resp_2.getKeys(keyList=['a','b','c','d','s'], ignoreKeys=["escape"], waitRelease=False)
                 _key_resp_2_allKeys.extend(theseKeys)
                 if len(_key_resp_2_allKeys):
                     key_resp_2.keys = _key_resp_2_allKeys[0].name  # just the first key pressed
                     key_resp_2.rt = _key_resp_2_allKeys[0].rt
                     key_resp_2.duration = _key_resp_2_allKeys[0].duration
-                    # a response ends the routine
-                    continueRoutine = False
-            # *ISI_load_images* period
-            
-            # if ISI_load_images is starting this frame...
-            if ISI_load_images.status == NOT_STARTED and t >= 0-frameTolerance:
-                # keep track of start time/frame for later
-                ISI_load_images.frameNStart = frameN  # exact frame index
-                ISI_load_images.tStart = t  # local t and not account for scr refresh
-                ISI_load_images.tStartRefresh = tThisFlipGlobal  # on global time
-                win.timeOnFlip(ISI_load_images, 'tStartRefresh')  # time at next scr refresh
-                # add timestamp to datafile
-                thisExp.addData('ISI_load_images.started', t)
-                # update status
-                ISI_load_images.status = STARTED
-                # start the static period
-                ISI_load_images.start(0.5)
-            elif ISI_load_images.status == STARTED:  # one frame should pass before updating params and completing
-                # finish the static period and store its duration
-                ISI_load_images.complete()
-                ISI_load_images.tStop = ISI_load_images.tStart + ISI_load_images.getDuration()
+            # Run 'Each Frame' code from sync_capture
+            resp, rt, dur = sync_box.get_response(begin_time, timeout=0.001)
+            if resp and resp in ["a", "b", "c", "d"]:
+                key_resp_2.keys = resp
+                key_resp_2.rt = rt
+                key_resp_2.duration = dur
             
             # check for quit (typically the Esc key)
             if defaultKeyboard.getKeys(keyList=["escape"]):
@@ -1090,7 +1062,7 @@ def run(expInfo, thisExp, win, globalClock=None, thisSession=None):
             trials.status = STARTED
         thisExp.nextEntry()
         
-    # completed 15.0 repeats of 'trials'
+    # completed 5.0 repeats of 'trials'
     trials.status = FINISHED
     
     if thisSession is not None:
@@ -1213,8 +1185,6 @@ def run(expInfo, thisExp, win, globalClock=None, thisSession=None):
     end.tStop = globalClock.getTime(format='float')
     end.tStopRefresh = tThisFlipGlobal
     thisExp.addData('end.stopped', end.tStop)
-    # Run 'End Routine' code from close_sk
-    #sk.close()
     # using non-slip timing so subtract the expected duration of this Routine (unless ended on request)
     if end.maxDurationReached:
         routineTimer.addTime(-end.maxDuration)
@@ -1223,6 +1193,9 @@ def run(expInfo, thisExp, win, globalClock=None, thisSession=None):
     else:
         routineTimer.addTime(-1.000000)
     thisExp.nextEntry()
+    # Run 'End Experiment' code from sync_close
+    sync_box.stop()
+    sync_box.close()
     
     # mark experiment as finished
     endExperiment(thisExp, win=win)

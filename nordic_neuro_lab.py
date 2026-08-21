@@ -1,45 +1,28 @@
 """NordicNeuroLab SyncBox interface.
 
+Refactored and added SyncBox.get_response().
+
 Source:
     - https://github.com/nordicneurolab/py_syncbox
+
 """
 
 from __future__ import annotations
 
-# import contextlib
 from dataclasses import dataclass, field
 from enum import Enum
 import time
-from typing import Optional
-
+from typing import Tuple, Optional
 from serial import Serial, SerialException
 import serial.tools.list_ports
 
-# Terminal ANSI Color Codes
-COLOR_GREEN = "\033[92m"
-COLOR_RED = "\033[91m"
-COLOR_BLUE = "\033[94m"
-COLOR_RESET = "\033[0m"
 
-COMMAND_PAYLOAD_SIZE = 1  # Number of bytes to read from the SyncBox
-CONFIGURE_PAYLOAD_SIZE = 12 * 4  # 12 parameters, each 4 bytes (32 bits)
-MAX_PAYLOAD_SIZE = 64  # Maximum bytes to read in one go
-DUMMY_PAYLOAD = b"0000"
+class GetGlobals(int, Enum):
+    """Set globals for better references."""
 
-
-def print_info(msg: str) -> None:
-    """Print an informational message in blue."""
-    print(f"{COLOR_BLUE}[*] {msg}{COLOR_RESET}")
-
-
-def print_success(msg: str) -> None:
-    """Print a success message in green."""
-    print(f"{COLOR_GREEN}[+] {msg}{COLOR_RESET}")
-
-
-def print_error(msg: str) -> None:
-    """Print an error message in red."""
-    print(f"{COLOR_RED}[-] {msg}{COLOR_RESET}")
+    COMMAND_PAYLOAD_SIZE = 1  # Number of bytes to read from the SyncBox
+    CONFIGURE_PAYLOAD_SIZE = 12 * 4  # 12 parameters, each 4 bytes (32 bits)
+    MAX_PAYLOAD_SIZE = 64  # Maximum bytes to read in one go
 
 
 class Trigger(bytes, Enum):
@@ -50,6 +33,7 @@ class Trigger(bytes, Enum):
     LEFT_INDEX = b"b"
     RIGHT_INDEX = b"c"
     RIGHT_THUMB = b"d"
+    DUMMY_PAYLOAD = b"0000"
 
 
 class Command(bytes, Enum):
@@ -57,9 +41,9 @@ class Command(bytes, Enum):
 
     START = b"S"
     CONFIGURE = b"R"
-    COMPUTER_MODE = b"D"  # C
+    COMPUTER_MODE = b"C"
     STOP = b"A"
-    MANUAL_MODE = b"C"  # D
+    MANUAL_MODE = b"D"
 
 
 class SyncBoxException(Exception):
@@ -70,7 +54,8 @@ class SyncBoxException(Exception):
         self.message = message
 
     def __str__(self) -> str:
-        return f"{COLOR_RED}SyncBoxException: {self.message}{COLOR_RESET}"
+        # return f"{COLOR_RED}SyncBoxException: {self.message}{COLOR_RESET}"
+        return f"SyncBoxException: {self.message}"
 
 
 @dataclass
@@ -129,43 +114,56 @@ class SyncBox:
             self._ser = Serial(
                 self.serial_port, self.baud_rate, timeout=self.timeout
             )
-            print_success(f"Connected to SyncBox on {self.serial_port}")
+            print(f"Connected to SyncBox on {self.serial_port}")
         except Exception as error:
             raise SyncBoxException(
                 f"Failed to connect to SyncBox on {self.serial_port}: {error}"
             ) from error
 
         try:
+            print("Checking communication with SyncBox.")
+
             payload = (
-                DUMMY_PAYLOAD
+                Trigger.DUMMY_PAYLOAD
                 + self.int_to_bytes(self.num_volumes)
                 + self.int_to_bytes(self.num_slices)
                 + self.int_to_bytes(self.pulse_length)
                 + self.int_to_bytes(self.tr_time)
                 + self.int_to_bytes(self.trigger_slice)
                 + self.int_to_bytes(self.trigger_volume)
-                + DUMMY_PAYLOAD
-                + DUMMY_PAYLOAD
+                + Trigger.DUMMY_PAYLOAD
+                + Trigger.DUMMY_PAYLOAD
                 + self.int_to_bytes(self.optional_trigger_slice)
                 + self.int_to_bytes(self.optional_trigger_volume)
                 + self.int_to_bytes(0 if self.simulation else 1)
             )
 
             if not self._send_command(
-                Command.COMPUTER_MODE, COMMAND_PAYLOAD_SIZE
+                Command.COMPUTER_MODE, GetGlobals.COMMAND_PAYLOAD_SIZE
             ):
                 raise SyncBoxException(
                     "Failed to enter computer mode on SyncBox."
                 )
 
-            if not self._send_command(Command.CONFIGURE, COMMAND_PAYLOAD_SIZE):
+            if not self._send_command(
+                Command.CONFIGURE, GetGlobals.COMMAND_PAYLOAD_SIZE
+            ):
                 raise SyncBoxException(
                     "Failed to send configure command to SyncBox."
                 )
 
-            if not self._send_command(payload, CONFIGURE_PAYLOAD_SIZE):
+            if not self._send_command(
+                payload, GetGlobals.CONFIGURE_PAYLOAD_SIZE
+            ):
                 raise SyncBoxException(
                     "Failed to send configuration to SyncBox."
+                )
+
+            if not self._send_command(
+                Command.MANUAL_MODE, GetGlobals.COMMAND_PAYLOAD_SIZE
+            ):
+                raise SyncBoxException(
+                    "Failed to enter manual mode on SyncBox."
                 )
 
         except Exception as error:
@@ -175,7 +173,7 @@ class SyncBox:
             ) from error
 
         self.print_configuration()
-        print_success("SyncBox configured successfully.")
+        print("SyncBox configured successfully.")
 
     def __enter__(self) -> SyncBox:
         return self
@@ -189,7 +187,9 @@ class SyncBox:
     def start(self) -> None:
         """Start a SyncBox synchronization or simulation session."""
         try:
-            if not self._send_command(Command.START, COMMAND_PAYLOAD_SIZE):
+            if not self._send_command(
+                Command.START, GetGlobals.COMMAND_PAYLOAD_SIZE
+            ):
                 raise SyncBoxException("Failed to start SyncBox session.")
         except Exception as error:
             self.close()
@@ -197,12 +197,14 @@ class SyncBox:
                 f"Failed to start SyncBox session: {error}"
             ) from error
 
-        print_info("SyncBox session started.")
+        print("SyncBox session started.")
 
     def stop(self) -> None:
         """Stop an ongoing SyncBox synchronization or simulation session."""
         try:
-            if not self._send_command(Command.STOP, COMMAND_PAYLOAD_SIZE):
+            if not self._send_command(
+                Command.STOP, GetGlobals.COMMAND_PAYLOAD_SIZE
+            ):
                 raise SyncBoxException("Failed to stop SyncBox session.")
         except Exception as error:
             self.close()
@@ -210,17 +212,19 @@ class SyncBox:
                 f"Failed to stop SyncBox session: {error}"
             ) from error
 
-        print_info("SyncBox session stopped.")
+        print("SyncBox session stopped.")
 
     def close(self) -> None:
         """Close serial port connection and turn off SyncBox Computer Mode."""
         if self._ser and self._ser.is_open:
             try:
-                self._send_command(Command.MANUAL_MODE, COMMAND_PAYLOAD_SIZE)
+                self._send_command(
+                    Command.MANUAL_MODE, GetGlobals.COMMAND_PAYLOAD_SIZE
+                )
                 self._ser.close()
-                print_info("Disconnected from SyncBox.")
+                print("Disconnected from SyncBox.")
             except Exception as error:
-                print_error(f"Error while disconnecting from SyncBox: {error}")
+                print(f"Error while disconnecting from SyncBox: {error}")
             finally:
                 self._ser = None
 
@@ -252,7 +256,7 @@ class SyncBox:
         old_timeout = self._ser.timeout
         try:
             self._ser.timeout = timeout
-            out = self._ser.read(COMMAND_PAYLOAD_SIZE)
+            out = self._ser.read(GetGlobals.COMMAND_PAYLOAD_SIZE)
             if not out:
                 raise SyncBoxException(
                     "No trigger received from SyncBox "
@@ -268,6 +272,55 @@ class SyncBox:
             if self._ser is not None and self._ser.is_open:
                 self._ser.timeout = old_timeout
 
+    def get_response(
+        self, begin_time: float, timeout: float = 0.1
+    ) -> Tuple[str, float, float]:
+        """Get the trigger, response time, and duration from SyncBox.
+
+        Args:
+            begin_time: Time of trial start.
+            timeout:Max time to wait for a keypress in seconds.
+
+        Returns:
+            (trigger_char, response_time, duration_in_seconds)
+            if detected, otherwise (False, False, False).
+        """
+        if self._ser is None or not self._ser.is_open:
+            raise SyncBoxException(
+                "No active connection to SyncBox. "
+                + "Please connect and try again."
+            )
+
+        # Listen for initial key press
+        self._ser.timeout = timeout
+        out = self._ser.read(GetGlobals.COMMAND_PAYLOAD_SIZE)
+        if out:
+            press_time = time.perf_counter()
+            trigger_char = out.decode("utf-8")
+
+            # Track duration by checking when key signal stops
+            last_held_time = press_time
+            key_held = True
+
+            # Micro-timeout to rapidly poll key hold state
+            self._ser.timeout = 0.005
+            while key_held:
+                next_byte = self._ser.read(GetGlobals.COMMAND_PAYLOAD_SIZE)
+                if next_byte == out:
+                    last_held_time = time.perf_counter()
+                else:
+                    key_held = False
+
+            duration = last_held_time - press_time
+            resp_time = press_time - begin_time
+
+            # Reset serial timeout back to default class setting
+            self._ser.timeout = self.timeout
+            return trigger_char, resp_time, duration
+
+        self._ser.timeout = self.timeout
+        return False, False, False
+
     def _find_sync_box(self) -> Optional[str]:
         ports = serial.tools.list_ports.comports()
         if not ports:
@@ -276,7 +329,7 @@ class SyncBox:
                 + "the SyncBox and try again."
             )
 
-        print_info(
+        print(
             f"Found {len(ports)} serial ports: "
             + f"{[port.device for port in ports]}"
         )
@@ -287,9 +340,9 @@ class SyncBox:
                 with Serial(com, self.baud_rate, timeout=self.timeout) as ser:
                     ser.write(Command.COMPUTER_MODE)
                     time.sleep(self.timeout)
-                    response = ser.read(COMMAND_PAYLOAD_SIZE)
+                    response = ser.read(GetGlobals.COMMAND_PAYLOAD_SIZE)
                     if response == Command.COMPUTER_MODE:
-                        print_success(f"SyncBox found on {com}")
+                        print(f"SyncBox found on {com}")
                         return com
             except SerialException:
                 continue
@@ -305,14 +358,12 @@ class SyncBox:
         response = self._ser.read(payload_size)
 
         if not response:
-            print_error(f"No response received for command {payload!r}.")
+            print(f"No response received for command {payload!r}.")
             return False
 
-        print_info(f"Received response: {response!r}")
+        print(f"Received response: {response!r}")
         if response != payload:
-            print_error(
-                f"Unexpected response: {response!r} (expected: {payload!r})"
-            )
+            print(f"Unexpected response: {response!r} (expected: {payload!r})")
             return False
 
         return True
@@ -340,4 +391,4 @@ class SyncBox:
             f"\tOptional Trigger Volume: {self.optional_trigger_volume}\n"
             f"\tSimulation Mode: {'On' if self.simulation else 'Off'}\n"
         )
-        print_info(config_str)
+        print(config_str)
