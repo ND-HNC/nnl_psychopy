@@ -12,6 +12,7 @@ Examples:
     # As a CLI tool:
     python -m serial_keyboard --get-ports
     python -m serial_keyboard --port /dev/ttyUSB0 --baud 9600
+
 """
 
 from __future__ import annotations

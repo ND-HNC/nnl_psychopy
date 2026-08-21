@@ -2,7 +2,7 @@ import sys
 from unittest.mock import MagicMock, PropertyMock, patch
 import pytest
 
-from nnl_psychopy.serial_keyboard import (
+from serial_keyboard import (
     Key,
     SerialKeyboard,
     _get_args,
@@ -60,7 +60,7 @@ def test_connect_failure(mock_serial):
         sk.connect()
 
 
-@patch("nnl_psychopy.serial_keyboard.Controller")
+@patch("serial_keyboard.Controller")
 @patch("serial.Serial")
 def test_listen_reads_and_types_data(mock_serial, mock_controller_cls):
     """Test incoming lines from serial input and typing them via pynput."""
@@ -124,7 +124,7 @@ def test_get_args_no_args_exit():
         assert exc_info.value.code == 0
 
 
-@patch("nnl_psychopy.serial_keyboard.list_ports")
+@patch("serial_keyboard.list_ports")
 def test_main_get_ports_flag(mock_list_ports, capsys):
     """Test main function with --get-ports argument."""
     mock_list_ports.return_value = ["/dev/ttyUSB0", "/dev/ttyUSB1"]
