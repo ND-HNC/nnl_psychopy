@@ -304,7 +304,7 @@
         <Param val="" valType="extendedCode" updates="constant" name="Begin JS Routine"/>
         <Param val="import time&amp;#10;&amp;#10;begin_time = time.perf_counter()" valType="extendedCode" updates="constant" name="Begin Routine"/>
         <Param val="Py" valType="str" updates="None" name="Code Type"/>
-        <Param val="resp, rt, dur = sync_box.get_response(begin_time, timeout=0.001)&amp;#10;#if resp and resp in [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;]:&amp;#10;if resp:&amp;#10;    key_resp_2.keys = resp&amp;#10;    key_resp_2.rt = rt&amp;#10;    key_resp_2.duration = dur" valType="extendedCode" updates="constant" name="Each Frame"/>
+        <Param val="resp, rt, dur = sync_box.get_response(begin_time, timeout=0.001)&amp;#10;if resp:&amp;#10;    key_resp_2.keys = resp&amp;#10;    key_resp_2.rt = rt&amp;#10;    key_resp_2.duration = dur" valType="extendedCode" updates="constant" name="Each Frame"/>
         <Param val="" valType="extendedCode" updates="constant" name="Each JS Frame"/>
         <Param val="" valType="extendedCode" updates="constant" name="End Experiment"/>
         <Param val="" valType="extendedCode" updates="constant" name="End JS Experiment"/>
@@ -501,6 +501,23 @@
         <Param val="False" valType="bool" updates="constant" name="storeCorrect"/>
         <Param val="True" valType="bool" updates="constant" name="syncScreenRefresh"/>
       </KeyboardComponent>
+      <CodeComponent name="get_key" plugin="None">
+        <Param val="" valType="extendedCode" updates="constant" name="Before Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Before JS Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin JS Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin JS Routine"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin Routine"/>
+        <Param val="Py" valType="str" updates="None" name="Code Type"/>
+        <Param val="resp, _, _ = sync_box.get_response(0, timeout=0.001)&amp;#10;if resp:&amp;#10;    continueRoutine = False" valType="extendedCode" updates="constant" name="Each Frame"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Each JS Frame"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End JS Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End JS Routine"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End Routine"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="get_key" valType="code" updates="None" name="name"/>
+      </CodeComponent>
     </Routine>
     <Routine name="image_loader">
       <RoutineSettingsComponent name="image_loader" plugin="None">
@@ -558,7 +575,7 @@
   </Routines>
   <Flow>
     <LoopInitiator loopType="TrialHandler" name="trials_2">
-      <Param name="Selected rows" updates="None" val="" valType="code"/>
+      <Param name="Selected rows" updates="None" val="" valType="str"/>
       <Param name="conditions" updates="None" val="None" valType="str"/>
       <Param name="conditionsFile" updates="None" val="" valType="file"/>
       <Param name="endPoints" updates="None" val="[0, 1]" valType="code"/>

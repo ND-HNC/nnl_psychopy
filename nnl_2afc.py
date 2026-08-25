@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v2026.2.2),
-    on Tue Aug 25 10:08:47 2026
+    on Tue Aug 25 11:55:27 2026
 If you publish work using this script the most relevant publication is:
 
     Peirce J, Gray JR, Simpson S, MacAskill M, Höchenberger R, Sogo H, Kastman E, Lindeløv JK. (2019) 
@@ -722,6 +722,10 @@ def run(expInfo, thisExp, win, globalClock=None, thisSession=None):
                 key_resp_3.duration = _key_resp_3_allKeys[-1].duration
                 # a response ends the routine
                 continueRoutine = False
+        # Run 'Each Frame' code from get_key
+        resp, _, _ = sync_box.get_response(0, timeout=0.001)
+        if resp:
+            continueRoutine = False
         
         # check for quit (typically the Esc key)
         if defaultKeyboard.getKeys(keyList=["escape"]):
@@ -1301,7 +1305,6 @@ def run(expInfo, thisExp, win, globalClock=None, thisSession=None):
                     key_resp_2.duration = _key_resp_2_allKeys[0].duration
             # Run 'Each Frame' code from sync_capture
             resp, rt, dur = sync_box.get_response(begin_time, timeout=0.001)
-            #if resp and resp in ["a", "b", "c", "d"]:
             if resp:
                 key_resp_2.keys = resp
                 key_resp_2.rt = rt
