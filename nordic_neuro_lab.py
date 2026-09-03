@@ -60,34 +60,23 @@ class SyncBoxException(Exception):
 
 @dataclass
 class SyncBox:
-    """Finds and establishes serial connection with the SyncBox in serial mode.
+    """Finds and establishes serial connection with the SyncBox.
 
-    Parameters
-    ----------
-    num_volumes : int
-        Number of volumes.
-    num_slices : int
-        Number of slices in each volume.
-    trigger_slice : int
-        Slice number to trigger on.
-    trigger_volume : int
-        How often to trigger on a volume.
-    pulse_length : int
-        Pulse length in ms (simulation mode).
-    tr_time : int
-        TR time in ms (simulation mode).
-    optional_trigger_slice : int
-        0: specific slice, 1: each slice, 2: random slice.
-    optional_trigger_volume : int
-        0: specific volume, 1: each volume, 2: random volume.
-    simulation : bool
-        False for synchronization mode, True for simulation mode.
-    serial_port : Optional[str]
-        Serial port device name. If None, auto-detects available ports.
-    baud_rate : int
-        Baud rate for serial communication (default: 57600).
-    timeout : float
-        Serial communication timeout in seconds (default: 0.5s).
+    Args:
+        num_volumes: Number of volumes.
+        num_slices: Number of slices in each volume.
+        trigger_slice: Slice number to trigger on.
+        trigger_volume: How often to trigger on a volume.
+        pulse_length: Pulse length in ms (simulation mode).
+        tr_time: TR time in ms (simulation mode).
+        optional_trigger_slice: 0=specific, 1=each, 2=random slice.
+        optional_trigger_volume: 0=specific, 1=each, 2=random volume.
+        simulation: False for synchronization mode, True for simulation mode.
+        serial_port: Serial port device name. If None,
+            auto-detects available ports.
+        baud_rate: Baud rate for serial communication (default: 57600).
+        timeout: Serial communication timeout in seconds (default: 0.5s).
+        manual_mode: True for manual sync, False for computer mode.
     """
 
     num_volumes: int = 16
@@ -102,6 +91,7 @@ class SyncBox:
     serial_port: Optional[str] = None
     baud_rate: int = 57600
     timeout: float = 0.5
+    manual_mode: bool = False
     _ser: Optional[Serial] = field(init=False, default=None)
 
     def __post_init__(self) -> None:
@@ -159,12 +149,13 @@ class SyncBox:
                     "Failed to send configuration to SyncBox."
                 )
 
-            if not self._send_command(
-                Command.MANUAL_MODE, GetGlobals.COMMAND_PAYLOAD_SIZE
-            ):
-                raise SyncBoxException(
-                    "Failed to enter manual mode on SyncBox."
-                )
+            if self.manual_mode:
+                if not self._send_command(
+                    Command.MANUAL_MODE, GetGlobals.COMMAND_PAYLOAD_SIZE
+                ):
+                    raise SyncBoxException(
+                        "Failed to enter manual mode on SyncBox."
+                    )
 
         except Exception as error:
             self.close()
